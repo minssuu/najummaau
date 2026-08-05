@@ -493,21 +493,21 @@
   background-repeat: no-repeat;
   background-position: center 16%;
   background-size: cover;
-  opacity: .62;
+  opacity: .96;
 }
 .landing-bg::after {
   content: "";
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse at 50% 34%, #04060700 0%, #040607a6 46%, #040607e6 78%),
-    linear-gradient(180deg, #040607cc 0%, #04060759 26%, #040607b8 72%, #040607 100%);
+    radial-gradient(ellipse 60% 46% at 50% 47%, #040607a6 0%, #0406074d 52%, #04060700 76%),
+    linear-gradient(180deg, #0406074d 0%, #04060714 20%, #04060745 60%, #040607e0 92%, #040607 100%);
 }
 .landing-content { position: relative; z-index: 2; }
 .landing-moon,
-.landing-tide { z-index: 1; }
+.landing-tide { display: none !important; }
 @media (max-width: 720px) {
-  .landing-bg { background-position: center 12%; opacity: .55; }
+  .landing-bg { background-position: center 10%; opacity: .92; }
 }
 
 /* ---- 인물 카드 한자 워터마크 제거 ---- */
@@ -524,4 +524,62 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .bgm-waiting .audio-control button { animation: none; }
+}
+
+/* ==================================================================
+   5차 수정 (2026-08-06) — 박스 프레임 제거 · 가로 확장
+================================================================== */
+
+/* ---- 콘텐츠 폭 확장 ---- */
+.content-section { max-width: 1560px; }
+.home-page .content-section { max-width: 1560px; }
+.people-section .section-title { max-width: 1560px; }
+.landing-content { width: min(1040px, 100%); }
+.landing-label,
+.landing-copy p,
+.landing-foot { text-shadow: 0 2px 16px #040607, 0 0 34px #040607d9; }
+
+/* ---- 항구와 소금 : 액자 제거 ---- */
+.deal-brief {
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0 auto;
+}
+.deal-heading { max-width: 1040px; }
+.deal-pieces {
+  background: none;
+  border: 0;
+  border-top: 1px solid var(--line);
+  gap: 0;
+  margin-top: 58px;
+}
+.deal-pieces article {
+  background: none;
+  min-height: 0;
+  padding: 38px 42px 38px 0;
+}
+.deal-pieces article + article {
+  border-left: 1px solid var(--line);
+  padding-left: 42px;
+}
+
+/* ---- 지도 · 소설 본문 : 액자 제거 ---- */
+.zone-canvas { border: 0; }
+.zone-canvas::after { opacity: .55; }
+.zone-map { grid-template-columns: 1.15fr .85fr; gap: 54px; }
+
+.story-prose {
+  border: 0;
+  background: none;
+  padding: 0;
+  max-width: 920px;
+}
+.story-prose::before { content: none; }
+
+@media (max-width: 900px) {
+  .deal-pieces { grid-template-columns: 1fr; }
+  .deal-pieces article { padding: 30px 0; border-top: 1px solid var(--line); }
+  .deal-pieces article + article { border-left: 0; padding-left: 0; }
+  .deal-pieces article:first-child { border-top: 0; }
 }
