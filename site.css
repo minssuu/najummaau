@@ -477,3 +477,51 @@
   .people-section .section-title { padding: 0 22px; margin-bottom: 43px; }
   .person-card { min-height: 400px; }
 }
+
+/* ==================================================================
+   4차 수정 (2026-08-05)
+================================================================== */
+
+/* ---- 메인 로고 뒤 배경 이미지 (가로 확장) ---- */
+.landing-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: url(assets/landing-bg.png);
+  background-image: image-set(url(assets/landing-bg.webp) type("image/webp"),
+                              url(assets/landing-bg.png) type("image/png"));
+  background-repeat: no-repeat;
+  background-position: center 16%;
+  background-size: cover;
+  opacity: .62;
+}
+.landing-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 50% 34%, #04060700 0%, #040607a6 46%, #040607e6 78%),
+    linear-gradient(180deg, #040607cc 0%, #04060759 26%, #040607b8 72%, #040607 100%);
+}
+.landing-content { position: relative; z-index: 2; }
+.landing-moon,
+.landing-tide { z-index: 1; }
+@media (max-width: 720px) {
+  .landing-bg { background-position: center 12%; opacity: .55; }
+}
+
+/* ---- 인물 카드 한자 워터마크 제거 ---- */
+.person-mark { display: none !important; }
+
+/* ---- 재생이 아직 막혀 있을 때 버튼 안내 ---- */
+@keyframes bgm-wait-pulse {
+  0%, 100% { opacity: .55; }
+  50%      { opacity: 1; }
+}
+.bgm-waiting .audio-control button {
+  animation: bgm-wait-pulse 1.9s ease-in-out infinite;
+  border-color: var(--paper, #dcdad2);
+}
+@media (prefers-reduced-motion: reduce) {
+  .bgm-waiting .audio-control button { animation: none; }
+}

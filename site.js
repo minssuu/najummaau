@@ -33,7 +33,7 @@
         entry.target.classList.add("is-visible");
         revealObserver.unobserve(entry.target);
       });
-    }, { threshold: 0.12, rootMargin: "0px 0px -7%" });
+    }, { threshold: 0, rootMargin: "0px 0px -6%" });
     elements.forEach((element) => revealObserver.observe(element));
   };
 
@@ -63,7 +63,7 @@
     initZoneMaps(scope);
   };
 
-  /* ---------------- 배경음악 (페이지 전환에도 끊기지 않음) ---------------- */
+  /* ---------------- 배경음악 (진입 즉시 / 첫 터치에 재생) ---------------- */
   const audio = document.querySelector(".audio-control audio");
   const button = document.querySelector(".audio-control button");
   const bars = document.querySelector(".audio-bars");
@@ -92,52 +92,82 @@
 
   if (audio && button && volumeInput && volumeOutput) {
     const savedVolume = Math.min(100, Math.max(0, Number(readStore(volumeKey, "42"))));
-    const savedTime = Number(readStore(timeKey, "0"));
     audio.volume = savedVolume / 100;
     volumeInput.value = String(savedVolume);
     volumeOutput.textContent = String(savedVolume).padStart(2, "0");
-    if (Number.isFinite(savedTime) && savedTime > 0) {
-      try { audio.currentTime = savedTime; } catch { /* 메타데이터 대기 */ }
-    }
+
+    // 저장된 재생 위치는 메타데이터가 준비된 뒤에 복원한다.
+    // (iOS는 준비 전 currentTime 조작 시 play() 요청을 거부한다)
+    const savedTime = Number(readStore(timeKey, "0"));
+    const restoreTime = () => {
+      if (!Number.isFinite(savedTime) || savedTime <= 0) return;
+      if (audio.currentTime > 0.5) return;
+      try { audio.currentTime = savedTime; } catch { /* 무시 */ }
+    };
+    if (audio.readyState >= 1) restoreTime();
+    else audio.addEventListener("loadedmetadata", restoreTime, { once: true });
 
     const wantsMusic = () => readStore(playingKey, "true") !== "false";
 
-    const tryPlay = async () => {
-      if (!audio.paused) return;
-      try { await audio.play(); } catch { /* 브라우저 자동재생 정책 */ }
-      updateAudioUI();
+    // 사용자 제스처 핸들러 안에서 동기적으로 호출되어야 모바일에서 통과된다
+    const startPlayback = () => {
+      if (!audio.paused || !wantsMusic()) return;
+      if (audio.readyState === 0) { try { audio.load(); } catch { /* 무시 */ } }
+      const request = audio.play();
+      if (request && typeof request.catch === "function") request.catch(() => { /* 정책 차단 */ });
     };
 
-    // 진입 즉시 재생 시도
-    if (wantsMusic()) void tryPlay();
-
-    // 자동재생이 막힌 경우: 마우스 이동·스크롤·터치·키 입력 등 어떤 동작이든 첫 신호에 재생
-    const gestureEvents = [
-      "pointerdown", "pointermove", "pointerup", "mousemove",
-      "touchstart", "keydown", "wheel", "scroll", "click"
+    const GESTURES = [
+      "touchstart", "touchend", "pointerdown", "pointerup", "mousedown",
+      "click", "keydown", "wheel", "scroll", "pointermove", "mousemove"
     ];
-    const onGesture = () => { if (wantsMusic()) void tryPlay(); };
-    const releaseGestures = () => {
-      gestureEvents.forEach((type) => window.removeEventListener(type, onGesture));
+    const onGesture = () => startPlayback();
+    const armGestures = () => {
+      GESTURES.forEach((type) => {
+        document.addEventListener(type, onGesture, { capture: true, passive: true });
+        window.addEventListener(type, onGesture, { capture: true, passive: true });
+      });
     };
-    gestureEvents.forEach((type) => {
-      window.addEventListener(type, onGesture, { passive: true });
-    });
-    audio.addEventListener("play", releaseGestures, { once: true });
+    const disarmGestures = () => {
+      GESTURES.forEach((type) => {
+        document.removeEventListener(type, onGesture, true);
+        window.removeEventListener(type, onGesture, true);
+      });
+    };
 
+    // 1) 진입 즉시 시도
+    startPlayback();
+    // 2) 차단되면 어떤 동작이든 첫 신호에 재생
+    armGestures();
+
+    audio.addEventListener("playing", () => {
+      disarmGestures();
+      document.body.classList.remove("bgm-waiting");
+      updateAudioUI();
+    });
+    audio.addEventListener("pause", () => {
+      if (wantsMusic()) armGestures();
+    });
     document.addEventListener("visibilitychange", () => {
-      if (!document.hidden && wantsMusic()) void tryPlay();
+      if (!document.hidden) startPlayback();
     });
+    window.addEventListener("pageshow", startPlayback);
 
-    button.addEventListener("click", async () => {
+    // 아직 못 틀었으면 재생 버튼을 은은하게 깜빡여 알린다
+    window.setTimeout(() => {
+      if (audio.paused && wantsMusic()) document.body.classList.add("bgm-waiting");
+    }, 1200);
+
+    button.addEventListener("click", () => {
       if (audio.paused) {
         writeStore(playingKey, "true");
-        await tryPlay();
+        startPlayback();
       } else {
         audio.pause();
         writeStore(playingKey, "false");
-        updateAudioUI();
+        document.body.classList.remove("bgm-waiting");
       }
+      updateAudioUI();
     });
 
     volumeInput.addEventListener("input", () => {
@@ -147,14 +177,13 @@
       volumeOutput.textContent = String(next).padStart(2, "0");
     });
 
-    // 새로고침·외부 진입 대비 재생 위치 저장 (사이트 내부 이동에는 사용되지 않음)
+    // 새로고침·외부 진입 대비 재생 위치 저장
     let lastSaved = 0;
     audio.addEventListener("timeupdate", () => {
       const now = audio.currentTime || 0;
       if (Math.abs(now - lastSaved) < 1) return;
       lastSaved = now;
       writeStore(timeKey, String(now));
-      writeStore(playingKey, String(!audio.paused));
     });
 
     audio.addEventListener("play", updateAudioUI);
