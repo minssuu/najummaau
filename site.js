@@ -3,7 +3,7 @@
     ".landing-label", ".landing-logo", ".landing-copy", ".entry-card", ".landing-foot",
     ".faction-hero-copy > *", ".faction-side", ".section-title", ".identity-grid > div",
     ".person-card", ".interest-list article", ".deal-heading", ".deal-pieces article",
-    ".history-list article", ".character-copy > *", ".character-visual", ".story-prose p",
+    ".history-list article", ".character-copy > *", ".character-visual", ".story-prose",
     ".character-relations article", ".faction-footer > *",
     ".zone-canvas", ".zone-cards li", ".zone-levers article", ".chronicle article"
   ].join(",");

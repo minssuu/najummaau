@@ -312,3 +312,133 @@
   .chronicle article:nth-child(2n)::before { right: auto; left: 0; }
   .chronicle h3 { font-size: 19px; }
 }
+
+/* ==================================================================
+   2차 수정 (2026-08-05)
+   4) 전반적인 폰트 확대   5) 인물 카드 가로 확장   2) 소설형 본문
+================================================================== */
+
+/* ---- 인물 카드: 이미지를 카드 전체로 확장 ---- */
+.person-card { min-height: 430px; }
+.person-card .person-image-wrap {
+  width: 100%;
+  inset: 0;
+  opacity: .82;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+.person-card .person-image-wrap img { object-position: center 15%; }
+.person-card .person-image-wrap::after {
+  background:
+    linear-gradient(100deg, #050607f7 0%, #050607e0 26%, #05060796 45%, #05060733 70%, #05060714 100%),
+    linear-gradient(180deg, #05060759 0%, #0506070d 30%, #050607b8 100%);
+}
+.person-card:hover .person-image-wrap { opacity: .95; transform: scale(1.02); }
+.person-card.has-portrait small {
+  max-width: 60%;
+  text-shadow: 0 2px 10px #050607, 0 0 22px #050607;
+}
+.person-card h3,
+.person-card .person-alias { text-shadow: 0 2px 14px #050607d9; }
+
+/* ---- 소설형 본문 ---- */
+.story-prose {
+  position: relative;
+  max-width: 820px;
+  border-top: 1px solid var(--line);
+  padding-top: 46px;
+}
+.story-prose::before {
+  content: "";
+  position: absolute;
+  top: -1px; left: 0;
+  width: 64px; height: 1px;
+  background: var(--theme);
+}
+.story-prose p {
+  border-bottom: none;
+  margin: 0 0 1.3em;
+  padding: 0;
+  color: #9d9d97;
+  font-size: clamp(15px, 1.5vw, 18px);
+  line-height: 2.05;
+}
+.story-prose p::before { content: none; display: none; }
+.story-prose p:last-child { margin-bottom: 0; }
+
+/* ---- 폰트 크기 확대 ---- */
+.landing-label { font-size: 10px; letter-spacing: .3em; }
+.landing-copy { font-size: clamp(15px, 2.1vw, 19px); }
+.entry-index { font-size: 9px; letter-spacing: .18em; }
+.entry-card small { font-size: 12px; }
+.entry-card i { font-size: 11px; letter-spacing: .09em; }
+.landing-foot { font-size: 13px; }
+.chronicle-foot { font-size: 13px; }
+
+.section-kicker { font-size: 10px; letter-spacing: .24em; }
+.home-link small { font-size: 9px; letter-spacing: .2em; }
+.site-header nav a { font-size: 11px; }
+.identity-grid dt { font-size: 10px; }
+.identity-grid dd { font-size: 13.5px; }
+.faction-hero-copy > p:last-child { font-size: 15px; }
+.section-title > p:last-child:not(.section-kicker) { font-size: 14px; }
+
+.person-no { font-size: 12px; }
+.person-card .person-role { font-size: 11px; }
+.person-alias { font-size: 17px; }
+.person-alias span { font-size: 9px; }
+.person-card small { font-size: 13px; line-height: 1.8; }
+.person-more { font-size: 10px; }
+
+.map-district { font-size: 10px; }
+.map-caption { font-size: 12px; }
+.zone-pin .pin-label { font-size: 11px; }
+.zone-pin .pin-no { font-size: 9px; }
+.zone-cards .zone-no { font-size: 11px; }
+.zone-cards h3 { font-size: 20px; }
+.zone-cards p { font-size: 12.5px; }
+.zone-cards strong { font-size: 13.5px; }
+.zone-levers > p { font-size: 10px; }
+.zone-levers h4 { font-size: 15px; }
+.zone-levers p:last-child { font-size: 12.5px; }
+
+.deal-heading blockquote { font-size: 19px; }
+.deal-heading > p:last-child { font-size: 14px; }
+.deal-pieces article > span { font-size: 11px; }
+.deal-pieces dt { font-size: 10px; }
+.deal-pieces dd { font-size: 12px; }
+
+.chronicle time { font-size: 13px; }
+.chronicle .chron-tag { font-size: 9px; }
+.chronicle h3 { font-size: 23px; }
+.chronicle p { font-size: 13px; }
+
+.character-back { font-size: 10px; }
+.character-role { font-size: 11px; }
+.character-alias span { font-size: 9px; }
+.character-alias small { font-size: 12px; }
+.character-lead { font-size: 16px; }
+.character-footer a { font-size: 11px; }
+
+.faction-footer p { font-size: 14px; }
+.back-home { font-size: 10px; }
+.audio-control button { font-size: 9px; }
+.audio-control output { font-size: 10px; }
+
+@media (max-width: 720px) {
+  .landing-copy { font-size: 15px; line-height: 1.85; }
+  .entry-index { font-size: 8px; }
+  .entry-card small { font-size: 10px; }
+  .entry-card i { font-size: 10px; }
+  .landing-foot { font-size: 12px; }
+  .section-kicker { font-size: 9px; }
+  .site-header nav a { font-size: 10px; }
+  .identity-grid dd { font-size: 12.5px; }
+  .faction-hero-copy > p:last-child { font-size: 14px; }
+  .person-card { min-height: 400px; }
+  .person-card.has-portrait small { max-width: 72%; font-size: 12px; }
+  .character-lead { font-size: 15px; }
+  .story-prose { padding-top: 32px; }
+  .story-prose p { font-size: 15.5px; line-height: 1.95; }
+  .deal-heading blockquote { font-size: 17px; }
+}
