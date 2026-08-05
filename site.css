@@ -515,15 +515,16 @@
 
 /* ---- 재생이 아직 막혀 있을 때 버튼 안내 ---- */
 @keyframes bgm-wait-pulse {
-  0%, 100% { opacity: .55; }
-  50%      { opacity: 1; }
+  0%, 100% { box-shadow: 0 12px 30px #00000059, 0 0 0 0 #dcdad200; }
+  50%      { box-shadow: 0 12px 30px #00000059, 0 0 0 8px #dcdad217; }
 }
-.bgm-waiting .audio-control button {
+.bgm-waiting .audio-control {
   animation: bgm-wait-pulse 1.9s ease-in-out infinite;
-  border-color: var(--paper, #dcdad2);
+  border-color: #dcdad2a1;
 }
+.bgm-waiting .audio-control button { color: #f2f0e8; }
 @media (prefers-reduced-motion: reduce) {
-  .bgm-waiting .audio-control button { animation: none; }
+  .bgm-waiting .audio-control { animation: none; }
 }
 
 /* ==================================================================

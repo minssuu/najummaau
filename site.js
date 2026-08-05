@@ -72,7 +72,7 @@
   const volumeOutput = document.querySelector(".audio-control output");
   const volumeKey = "incheon-bgm-volume";
   const timeKey = "incheon-bgm-time";
-  const playingKey = "incheon-bgm-playing";
+  const pausedKey = "incheon-bgm-paused";
 
   const readStore = (key, fallback) => {
     try { return localStorage.getItem(key) ?? fallback; } catch { return fallback; }
@@ -80,17 +80,34 @@
   const writeStore = (key, value) => {
     try { localStorage.setItem(key, value); } catch { /* 저장소 차단됨 */ }
   };
+  // "직접 껐다"는 상태는 이번 방문에만 유지한다. 새로 들어오면 항상 자동재생을 시도한다.
+  const readSession = (key) => {
+    try { return sessionStorage.getItem(key); } catch { return null; }
+  };
+  const writeSession = (key, value) => {
+    try {
+      if (value === null) sessionStorage.removeItem(key);
+      else sessionStorage.setItem(key, value);
+    } catch { /* 저장소 차단됨 */ }
+  };
+  // 예전 버전이 영구 저장해 둔 "꺼짐" 플래그가 남아 있으면 자동재생이 막히므로 제거
+  try { localStorage.removeItem("incheon-bgm-playing"); } catch { /* 무시 */ }
 
   const updateAudioUI = () => {
     if (!audio || !button || !bars || !buttonText) return;
-    const playing = !audio.paused;
-    bars.classList.toggle("playing", playing);
-    buttonText.textContent = playing ? "BGM" : "PLAY";
-    button.setAttribute("aria-pressed", String(playing));
-    button.setAttribute("aria-label", playing ? "배경음악 일시정지" : "배경음악 재생");
+    const audible = !audio.paused && !audio.muted;
+    bars.classList.toggle("playing", audible);
+    buttonText.textContent = audible ? "BGM" : "PLAY";
+    button.setAttribute("aria-pressed", String(audible));
+    button.setAttribute("aria-label", audible ? "배경음악 일시정지" : "배경음악 재생");
   };
 
   if (audio && button && volumeInput && volumeOutput) {
+    // iOS: 무음(진동) 스위치가 켜져 있어도 배경음악이 나오도록 세션 종류를 지정
+    try {
+      if (navigator.audioSession) navigator.audioSession.type = "playback";
+    } catch { /* 미지원 브라우저 */ }
+
     const savedVolume = Math.min(100, Math.max(0, Number(readStore(volumeKey, "42"))));
     audio.volume = savedVolume / 100;
     volumeInput.value = String(savedVolume);
@@ -107,64 +124,83 @@
     if (audio.readyState >= 1) restoreTime();
     else audio.addEventListener("loadedmetadata", restoreTime, { once: true });
 
-    const wantsMusic = () => readStore(playingKey, "true") !== "false";
+    const wantsMusic = () => readSession(pausedKey) !== "1";
 
     // 사용자 제스처 핸들러 안에서 동기적으로 호출되어야 모바일에서 통과된다
-    const startPlayback = () => {
-      if (!audio.paused || !wantsMusic()) return;
+    const startPlayback = (allowMutedFallback) => {
+      if (!wantsMusic() || !audio.paused) return;
       if (audio.readyState === 0) { try { audio.load(); } catch { /* 무시 */ } }
       const request = audio.play();
-      if (request && typeof request.catch === "function") request.catch(() => { /* 정책 차단 */ });
+      if (!request || typeof request.catch !== "function") return;
+      request.catch(() => {
+        // 소리 있는 재생이 막히면 일단 음소거 상태로 틀어두고,
+        // 첫 터치가 들어오는 순간 소리를 켠다.
+        if (!allowMutedFallback || !wantsMusic() || !audio.paused) return;
+        audio.muted = true;
+        const silent = audio.play();
+        if (silent && typeof silent.catch === "function") {
+          silent.catch(() => { audio.muted = false; });
+        }
+      });
     };
 
     const GESTURES = [
       "touchstart", "touchend", "pointerdown", "pointerup", "mousedown",
       "click", "keydown", "wheel", "scroll", "pointermove", "mousemove"
     ];
-    const onGesture = () => startPlayback();
-    const armGestures = () => {
+    const settle = () => {
+      if (!audio.paused && !audio.muted) {
+        disarmGestures();
+        document.body.classList.remove("bgm-waiting");
+      }
+      updateAudioUI();
+    };
+    const onGesture = () => {
+      if (audio.muted) {
+        audio.muted = false;
+        audio.volume = Number(volumeInput.value) / 100;
+      }
+      startPlayback(false);
+      window.setTimeout(settle, 0);
+    };
+    function armGestures() {
       GESTURES.forEach((type) => {
         document.addEventListener(type, onGesture, { capture: true, passive: true });
         window.addEventListener(type, onGesture, { capture: true, passive: true });
       });
-    };
-    const disarmGestures = () => {
+    }
+    function disarmGestures() {
       GESTURES.forEach((type) => {
         document.removeEventListener(type, onGesture, true);
         window.removeEventListener(type, onGesture, true);
       });
-    };
+    }
 
-    // 1) 진입 즉시 시도
-    startPlayback();
-    // 2) 차단되면 어떤 동작이든 첫 신호에 재생
-    armGestures();
+    startPlayback(true);   // 1) 진입 즉시 시도 (막히면 음소거로라도 시작)
+    armGestures();         // 2) 어떤 동작이든 첫 신호에 소리 켜기
 
-    audio.addEventListener("playing", () => {
-      disarmGestures();
-      document.body.classList.remove("bgm-waiting");
-      updateAudioUI();
-    });
-    audio.addEventListener("pause", () => {
-      if (wantsMusic()) armGestures();
-    });
+    audio.addEventListener("playing", settle);
+    audio.addEventListener("pause", () => { if (wantsMusic()) armGestures(); });
     document.addEventListener("visibilitychange", () => {
-      if (!document.hidden) startPlayback();
+      if (!document.hidden) startPlayback(true);
     });
-    window.addEventListener("pageshow", startPlayback);
+    window.addEventListener("pageshow", () => startPlayback(true));
 
-    // 아직 못 틀었으면 재생 버튼을 은은하게 깜빡여 알린다
+    // 그래도 소리가 안 나면 재생 버튼을 깜빡여 알린다
     window.setTimeout(() => {
-      if (audio.paused && wantsMusic()) document.body.classList.add("bgm-waiting");
+      if ((audio.paused || audio.muted) && wantsMusic()) {
+        document.body.classList.add("bgm-waiting");
+      }
     }, 1200);
 
     button.addEventListener("click", () => {
-      if (audio.paused) {
-        writeStore(playingKey, "true");
-        startPlayback();
+      if (audio.paused || audio.muted) {
+        writeSession(pausedKey, null);
+        audio.muted = false;
+        startPlayback(false);
       } else {
         audio.pause();
-        writeStore(playingKey, "false");
+        writeSession(pausedKey, "1");
         document.body.classList.remove("bgm-waiting");
       }
       updateAudioUI();
