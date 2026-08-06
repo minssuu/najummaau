@@ -725,3 +725,78 @@ body.gal-open { overflow: hidden; }
   .gl-arrow.gl-next { right: 10px; }
   .gl-close { top: 14px; right: 14px; }
 }
+
+/* ==================================================================
+   7차 수정 (2026-08-06) — 인물 상세 히어로 가로 확장
+================================================================== */
+.character-hero {
+  display: block;
+  min-height: 92svh;
+  padding: 172px 7vw 112px;
+  overflow: hidden;
+}
+.character-watermark { display: none !important; }
+
+.character-visual {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  max-width: none;
+  aspect-ratio: auto;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  justify-self: auto;
+}
+.character-visual img {
+  object-position: center 17%;
+  opacity: .95;
+}
+.character-visual::after {
+  background:
+    linear-gradient(100deg, #050607f5 0%, #050607e6 27%, #0506079e 47%, #05060738 72%, #05060714 100%),
+    linear-gradient(180deg, #05060773 0%, #05060714 26%, #050607b3 82%, #050607 100%);
+}
+.character-copy {
+  position: relative;
+  z-index: 2;
+  max-width: 660px;
+}
+.character-copy h1,
+.character-lead,
+.character-alias strong { text-shadow: 0 2px 18px #050607, 0 0 40px #050607d9; }
+
+@media (max-width: 900px) {
+  .character-visual::after {
+    background:
+      linear-gradient(100deg, #050607f5 0%, #050607e0 42%, #050607a8 72%, #05060759 100%),
+      linear-gradient(180deg, #05060766 0%, #05060714 26%, #050607bf 84%, #050607 100%);
+  }
+}
+
+@media (max-width: 720px) {
+  .character-hero {
+    display: flex;
+    flex-direction: column;
+    min-height: auto;
+    padding: 96px 22px 62px;
+  }
+  .character-visual {
+    position: relative;
+    inset: auto;
+    order: -1;
+    width: auto;
+    margin: 0 -22px 34px;
+    aspect-ratio: 1;
+    opacity: 1;
+  }
+  .character-visual img { object-position: center 12%; opacity: 1; }
+  .character-visual::after {
+    background: linear-gradient(180deg, #05060700 50%, #050607a6 82%, #050607 100%);
+  }
+  .character-copy { max-width: none; }
+  .character-copy h1,
+  .character-lead,
+  .character-alias strong { text-shadow: none; }
+}
