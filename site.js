@@ -5,7 +5,7 @@
     ".person-card", ".interest-list article", ".deal-heading", ".deal-pieces article",
     ".history-list article", ".character-copy > *", ".character-visual", ".story-prose",
     ".character-relations article", ".faction-footer > *",
-    ".zone-canvas", ".zone-cards li", ".zone-levers article", ".chronicle article"
+    ".zone-canvas", ".zone-cards li", ".gallery", ".zone-levers article", ".chronicle article"
   ].join(",");
 
   const motionRoot = document.querySelector(".page-motion");
@@ -58,9 +58,115 @@
     });
   };
 
+
+  /* ---------------- 갤러리 (슬라이드 + 확대 보기) ---------------- */
+  let lightbox = null;
+  let lbImage = null;
+  let lbCaption = null;
+  let lbCounter = null;
+  let lbList = [];
+  let lbIndex = 0;
+
+  const buildLightbox = () => {
+    if (lightbox) return lightbox;
+    lightbox = document.createElement("div");
+    lightbox.className = "gal-lightbox";
+    lightbox.setAttribute("hidden", "");
+    lightbox.innerHTML =
+      '<button class="gl-close" type="button" aria-label="닫기">✕</button>' +
+      '<button class="gl-arrow gl-prev" type="button" aria-label="이전">‹</button>' +
+      '<figure><img alt=""/><figcaption><span class="gl-caption"></span>' +
+      '<span class="gl-counter"></span></figcaption></figure>' +
+      '<button class="gl-arrow gl-next" type="button" aria-label="다음">›</button>';
+    document.body.appendChild(lightbox);
+    lbImage = lightbox.querySelector("img");
+    lbCaption = lightbox.querySelector(".gl-caption");
+    lbCounter = lightbox.querySelector(".gl-counter");
+
+    const close = () => {
+      lightbox.setAttribute("hidden", "");
+      document.body.classList.remove("gal-open");
+      lbImage.removeAttribute("src");
+    };
+    lightbox.querySelector(".gl-close").addEventListener("click", close);
+    lightbox.addEventListener("click", (event) => {
+      if (event.target === lightbox || event.target.tagName === "FIGURE") close();
+    });
+    lightbox.querySelector(".gl-prev").addEventListener("click", () => showAt(lbIndex - 1));
+    lightbox.querySelector(".gl-next").addEventListener("click", () => showAt(lbIndex + 1));
+    document.addEventListener("keydown", (event) => {
+      if (lightbox.hasAttribute("hidden")) return;
+      if (event.key === "Escape") close();
+      if (event.key === "ArrowLeft") showAt(lbIndex - 1);
+      if (event.key === "ArrowRight") showAt(lbIndex + 1);
+    });
+
+    // 모바일 스와이프
+    let startX = null;
+    lightbox.addEventListener("touchstart", (event) => {
+      startX = event.touches[0].clientX;
+    }, { passive: true });
+    lightbox.addEventListener("touchend", (event) => {
+      if (startX === null) return;
+      const delta = event.changedTouches[0].clientX - startX;
+      startX = null;
+      if (Math.abs(delta) < 45) return;
+      showAt(delta < 0 ? lbIndex + 1 : lbIndex - 1);
+    }, { passive: true });
+
+    return lightbox;
+  };
+
+  function showAt(index) {
+    if (!lbList.length) return;
+    lbIndex = (index + lbList.length) % lbList.length;
+    const item = lbList[lbIndex];
+    lbImage.src = new URL(item.dataset.full, location.href).href;
+    lbImage.alt = item.querySelector("img")?.alt || "";
+    lbCaption.textContent = item.dataset.caption || "";
+    lbCounter.textContent = (lbIndex + 1) + " / " + lbList.length;
+  }
+
+  const initGalleries = (scope) => {
+    scope.querySelectorAll("[data-gallery]").forEach((gallery) => {
+      const track = gallery.querySelector(".gal-track");
+      const items = [...gallery.querySelectorAll(".gal-item")];
+      if (!track || !items.length) return;
+
+      items.forEach((item) => {
+        item.addEventListener("click", () => {
+          buildLightbox();
+          lbList = items;
+          lightbox.removeAttribute("hidden");
+          document.body.classList.add("gal-open");
+          showAt(Number(item.dataset.index) || 0);
+        });
+      });
+
+      const step = () => Math.max(track.clientWidth * 0.8, 240);
+      gallery.querySelector(".gal-prev")?.addEventListener("click", () => {
+        track.scrollBy({ left: -step(), behavior: "smooth" });
+      });
+      gallery.querySelector(".gal-next")?.addEventListener("click", () => {
+        track.scrollBy({ left: step(), behavior: "smooth" });
+      });
+
+      const syncArrows = () => {
+        const max = track.scrollWidth - track.clientWidth - 2;
+        gallery.classList.toggle("at-start", track.scrollLeft <= 2);
+        gallery.classList.toggle("at-end", track.scrollLeft >= max);
+      };
+      track.addEventListener("scroll", syncArrows, { passive: true });
+      window.addEventListener("resize", syncArrows);
+      syncArrows();
+    });
+  };
+
   const initPage = (scope) => {
+    if (lightbox) { lightbox.setAttribute("hidden", ""); document.body.classList.remove("gal-open"); }
     initReveals(scope);
     initZoneMaps(scope);
+    initGalleries(scope);
   };
 
   /* ---------------- 배경음악 (진입 즉시 / 첫 터치에 재생) ---------------- */

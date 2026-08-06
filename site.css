@@ -584,3 +584,144 @@
   .deal-pieces article + article { border-left: 0; padding-left: 0; }
   .deal-pieces article:first-child { border-top: 0; }
 }
+
+/* ==================================================================
+   6차 수정 (2026-08-06) — 모바일 관리 영역 · 갤러리
+================================================================== */
+
+/* ---- 모바일: 지도 위, 상세 아래로 ---- */
+@media (max-width: 900px) {
+  .zone-map { grid-template-columns: 1fr !important; gap: 30px; }
+  .zone-canvas { margin: 0 -4vw; }
+}
+
+/* ---- 갤러리 슬라이드 ---- */
+.gallery { position: relative; }
+.gal-track {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-bottom: 4px;
+}
+.gal-track::-webkit-scrollbar { display: none; }
+
+.gal-item {
+  flex: 0 0 auto;
+  width: clamp(220px, 25vw, 330px);
+  scroll-snap-align: start;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+}
+.gal-item img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  opacity: .84;
+  transition: opacity .3s ease, transform .55s ease;
+}
+.gal-item:hover img,
+.gal-item:focus-visible img { opacity: 1; transform: scale(1.035); }
+.gal-item span {
+  display: block;
+  margin-top: 11px;
+  color: #7c7e79;
+  font-size: 10px;
+  letter-spacing: .16em;
+  transition: color .25s ease;
+}
+.gal-item:hover span { color: var(--theme); }
+
+.gal-nav {
+  position: absolute;
+  top: 27%;
+  z-index: 3;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid #ffffff26;
+  background: #060809e0;
+  -webkit-backdrop-filter: blur(9px);
+  backdrop-filter: blur(9px);
+  color: #dcdad2;
+  font-size: 21px;
+  line-height: 1;
+  cursor: pointer;
+  transition: opacity .25s ease, border-color .25s ease;
+}
+.gal-nav:hover { border-color: var(--theme); }
+.gal-prev { left: -18px; }
+.gal-next { right: -18px; }
+.gallery.at-start .gal-prev,
+.gallery.at-end .gal-next { opacity: 0; pointer-events: none; }
+
+/* ---- 확대 보기 ---- */
+body.gal-open { overflow: hidden; }
+.gal-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6vh 7vw;
+  background: #030405f5;
+  -webkit-backdrop-filter: blur(7px);
+  backdrop-filter: blur(7px);
+}
+.gal-lightbox[hidden] { display: none; }
+.gal-lightbox figure {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin: 0;
+  max-width: 100%;
+}
+.gal-lightbox img {
+  max-width: 100%;
+  max-height: 78vh;
+  object-fit: contain;
+  border: 1px solid #ffffff1a;
+}
+.gal-lightbox figcaption {
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+  color: #8c8e88;
+  font-size: 11px;
+  letter-spacing: .18em;
+}
+.gl-counter { color: #5d5f5b; font-family: Georgia, serif; }
+.gl-close,
+.gl-arrow {
+  position: absolute;
+  border: 1px solid #ffffff26;
+  background: #0a0d0ecc;
+  color: #dcdad2;
+  cursor: pointer;
+  border-radius: 50%;
+  line-height: 1;
+}
+.gl-close { top: 22px; right: 24px; width: 40px; height: 40px; font-size: 13px; }
+.gl-arrow { top: 50%; transform: translateY(-50%); width: 46px; height: 46px; font-size: 22px; }
+.gl-arrow.gl-prev { left: 20px; }
+.gl-arrow.gl-next { right: 20px; }
+.gl-close:hover, .gl-arrow:hover { border-color: #dcdad2; }
+
+@media (max-width: 720px) {
+  .gal-item { width: 76vw; }
+  .gal-nav { display: none; }
+  .gal-lightbox { padding: 0; }
+  .gal-lightbox img { max-height: 72vh; }
+  .gl-arrow { width: 40px; height: 40px; font-size: 19px; }
+  .gl-arrow.gl-prev { left: 10px; }
+  .gl-arrow.gl-next { right: 10px; }
+  .gl-close { top: 14px; right: 14px; }
+}
