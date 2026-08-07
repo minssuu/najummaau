@@ -727,76 +727,63 @@ body.gal-open { overflow: hidden; }
 }
 
 /* ==================================================================
-   7차 수정 (2026-08-06) — 인물 상세 히어로 가로 확장
+   8차 수정 (2026-08-07) — 개인샷을 소개와 소설 사이로
 ================================================================== */
 .character-hero {
   display: block;
-  min-height: 92svh;
-  padding: 172px 7vw 112px;
+  min-height: auto;
+  padding: 172px 7vw 0;
   overflow: hidden;
 }
 .character-watermark { display: none !important; }
 
+.character-copy {
+  position: relative;
+  z-index: 2;
+  max-width: 820px;
+}
+
+/* 소개 아래 · 소설 위, 화면 끝에서 끝까지 */
 .character-visual {
-  position: absolute;
-  inset: 0;
+  position: relative;
+  inset: auto;
   z-index: 0;
-  width: 100%;
+  width: auto;
   max-width: none;
-  aspect-ratio: auto;
+  margin: 84px -7vw 0;
+  aspect-ratio: 21 / 9;
+  max-height: 76svh;
   border: 0;
   background: none;
   box-shadow: none;
   justify-self: auto;
+  align-self: auto;
 }
 .character-visual img {
-  object-position: center 17%;
-  opacity: .95;
+  object-position: center 20%;
+  opacity: 1;
 }
 .character-visual::after {
   background:
-    linear-gradient(100deg, #050607f5 0%, #050607e6 27%, #0506079e 47%, #05060738 72%, #05060714 100%),
-    linear-gradient(180deg, #05060773 0%, #05060714 26%, #050607b3 82%, #050607 100%);
+    linear-gradient(180deg, #05060766 0%, #05060700 24%, #0506070d 62%, #050607d9 92%, #050607 100%),
+    linear-gradient(90deg, #050607a6 0%, #05060700 22% 78%, #050607a6 100%);
 }
-.character-copy {
-  position: relative;
-  z-index: 2;
-  max-width: 660px;
-}
-.character-copy h1,
-.character-lead,
-.character-alias strong { text-shadow: 0 2px 18px #050607, 0 0 40px #050607d9; }
 
 @media (max-width: 900px) {
-  .character-visual::after {
-    background:
-      linear-gradient(100deg, #050607f5 0%, #050607e0 42%, #050607a8 72%, #05060759 100%),
-      linear-gradient(180deg, #05060766 0%, #05060714 26%, #050607bf 84%, #050607 100%);
-  }
+  .character-visual { aspect-ratio: 16 / 10; margin-top: 64px; }
 }
 
 @media (max-width: 720px) {
   .character-hero {
-    display: flex;
-    flex-direction: column;
+    display: block;
     min-height: auto;
-    padding: 96px 22px 62px;
+    padding: 96px 22px 0;
   }
   .character-visual {
-    position: relative;
-    inset: auto;
-    order: -1;
-    width: auto;
-    margin: 0 -22px 34px;
+    margin: 46px -22px 0;
     aspect-ratio: 1;
-    opacity: 1;
+    max-height: none;
   }
-  .character-visual img { object-position: center 12%; opacity: 1; }
-  .character-visual::after {
-    background: linear-gradient(180deg, #05060700 50%, #050607a6 82%, #050607 100%);
-  }
+  .character-visual img { object-position: center 14%; }
   .character-copy { max-width: none; }
-  .character-copy h1,
-  .character-lead,
-  .character-alias strong { text-shadow: none; }
 }
